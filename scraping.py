@@ -43,7 +43,7 @@ search_input.send_keys(Keys.RETURN)
 sleep(1)
 
 profiles_list = driver.find_elements_by_xpath('//div[@class="yuRUbf"]/a')
-profiles_list = [perfil.get_attribute('href') for perfil in lista_perfil]
+profiles_list = [profile.get_attribute('href') for profile in profiles_list]
 
 for profile in profiles_list:
     try:
