@@ -5,72 +5,72 @@ from time import sleep
 from parsel import Selector
 import csv
 
-# arquivo csv
 writer = csv.writer(open('output.csv', 'w', encoding='utf-8'))
-writer.writerow(['Nome', 'Headline', 'URL'])
+writer.writerow(['Name', 'URL', 'Email', 'Headline'])
 
 
-# Chrome diver
 driver = webdriver.Chrome('./chromedriver')
-
-# maximizar janela
-# driver.maximize_window()
 
 # LINKEDIN
 
-# acessar LinkedIn
+# access LinkedIn
 driver.get('https://www.linkedin.com/')
 sleep(1)
 
-# clicar no botão de login
-# driver.find_element_by_css_selector('a.nav__button-secondary').click()
-driver.find_element_by_xpath('//a[text()="Sign in"]').click()
-sleep(3)
+# Log in to LinkedIn
+driver.find_element_by_xpath('//*[@id="session_key"]').click()
+sleep(1)
 
-# preencher usuario
-# usuario_input = driver.find_element_by_css_selector('input#username')
-usuario_input = driver.find_element_by_name('session_key')
-usuario_input.send_keys('#loginlinkedin')
+user_input = driver.find_element_by_name('session_key')
+user_input.send_keys('User input')
 
-# preencher senha
-senha_input = driver.find_element_by_name('session_password')
-senha_input.send_keys('#senhalinkedin')
+password_input = driver.find_element_by_name('session_password')
+password_input.send_keys('User password')
 
-# clicar para logar
-# driver.find_element_by_css_selector("button.btn__primary--large").click()
-# driver.find_element_by_xpath('//button[text()="Sign in"]').click()
-senha_input.send_keys(Keys.RETURN)
-sleep(3)
+password_input.send_keys(Keys.RETURN)
+sleep(1)
 
 # GOOGLE
 driver.get('https://google.com')
 sleep(1)
 
-# selecionar campo de busca
-# campo_busca = driver.find_element_by_xpath('//input[@name="q"]')
-busca_input = driver.find_element_by_name('q')
+# Collect the URLs from query result
+search_input = driver.find_element_by_name('q')
 
-# fazer busca no google
-busca_input.send_keys('site:linkedin.com/in/ AND "data scientist" and "São José dos Campos"')
-busca_input.send_keys(Keys.RETURN)
-sleep(2)
+search_input.send_keys(
+    'site:linkedin.com/in/ AND "data scientist" and "São José dos Campos"')
+search_input.send_keys(Keys.RETURN)
+sleep(1)
 
-# extrair lista de perfis
-lista_perfil = driver.find_elements_by_xpath('//div[@class="r"]/a')
-lista_perfil = [perfil.get_attribute('href') for perfil in lista_perfil]
+profiles_list = driver.find_elements_by_xpath('//div[@class="yuRUbf"]/a')
+profiles_list = [perfil.get_attribute('href') for perfil in lista_perfil]
 
-# extrair informacoes individuais
-for perfil in lista_perfil:
-    driver.get(perfil)
-    sleep(4)
+for profile in profiles_list:
+    try:
+        driver.get(profile)
+        sleep(1)
 
-    response = Selector(text=driver.page_source)
-    nome = response.xpath('//title/text()').extract_first().split(" | ")[0]
-    headline = response.xpath('//h2/text()')[1].extract().strip()
-    url_perfil = driver.current_url
+        response = Selector(text=driver.page_source)
 
-    # escrever no arquivo csv
-    writer.writerow([nome, headline, url_perfil])
+        name = response.xpath('//title/text()').extract_first().split(" | ")[0]
+        headline = driver.find_element_by_xpath(
+            '//div[@class="text-body-medium break-words"]').text
+        url_profile = driver.current_url
 
-# sair do driver
+        driver.find_element_by_xpath(
+            '//*[@id="top-card-text-details-contact-info"]').click()
+        sleep(1)
+
+        component_links = driver.find_elements_by_xpath(
+            '//a[@href]')
+        link = []
+        email = None
+        for component in component_links:
+            if '@' in component.text and ' ' not in component.text:
+                email = component.text
+
+        writer.writerow([name, url_profile, email, headline])
+    except:
+        None
+
 driver.quit()
