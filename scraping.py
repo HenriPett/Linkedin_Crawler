@@ -1,9 +1,28 @@
-# import packages
+import requests
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 from parsel import Selector
 import csv
+
+
+def google_search_links(query):
+    url = f"https://google-search3.p.rapidapi.com/api/v1/search/q={query}&num=100"
+
+    headers = {
+        "X-User-Agent": "desktop",
+        "X-Proxy-Location": "EU",
+        "X-RapidAPI-Host": "google-search3.p.rapidapi.com",
+        "X-RapidAPI-Key": ""
+    }
+
+    r = requests.request("GET", url, headers=headers)
+
+    responses = r.json().get('results')
+
+    links = [response.get('link') for response in responses]
+
+    return links
 
 
 def build_query(location_inputs, niche_inputs, position_inputs, other_inputs):
@@ -45,7 +64,7 @@ def build_query(location_inputs, niche_inputs, position_inputs, other_inputs):
                 base_query += ' OR ' + other.strip()
         base_query += ')'
 
-    return base_query
+    return base_query.replace(' ', '%20')
 
 
 writer = csv.writer(open('output.csv', 'w', encoding='utf-8'))
@@ -63,7 +82,7 @@ while True:
 
     if input_keyword == 'continue':
         break
-    location_inputs.append(input_keyword)
+    location_inputs.append(input_keyword.capitalize())
 
 while True:
     input_keyword = input(
@@ -71,7 +90,7 @@ while True:
 
     if input_keyword == 'continue':
         break
-    niche_inputs.append(input_keyword)
+    niche_inputs.append(input_keyword.capitalize())
 
 while True:
     input_keyword = input(
@@ -79,7 +98,7 @@ while True:
 
     if input_keyword == 'continue':
         break
-    position_inputs.append(input_keyword)
+    position_inputs.append(input_keyword.capitalize())
 
 while True:
     input_keyword = input(
@@ -87,7 +106,7 @@ while True:
 
     if input_keyword == 'search':
         break
-    other_inputs.append(input_keyword)
+    other_inputs.append(input_keyword.capitalize())
 
 
 query = build_query(location_inputs, niche_inputs,
@@ -107,42 +126,27 @@ driver.find_element_by_xpath('//*[@id="session_key"]').click()
 sleep(1)
 
 user_input = driver.find_element_by_name('session_key')
-user_input.send_keys('User input')
+user_input.send_keys('henrique@usebom.com')
 
+sleep(2)
 password_input = driver.find_element_by_name('session_password')
-password_input.send_keys('User password')
+password_input.send_keys('')
 
 password_input.send_keys(Keys.RETURN)
-sleep(1)
 
 # GOOGLE
-driver.get('https://google.com')
-sleep(1)
 
-urls = []
 # Collect the URLs from query result
-for i in range(10):
-    search_input = driver.find_element_by_name('q')
+print('Collecting URLs...')
+urls = google_search_links(query)
+print('Done!')
 
-    search_input.send_keys(query)
-
-    search_input.send_keys(Keys.RETURN)
-    sleep(1)
-
-    profiles_list = driver.find_elements_by_xpath('//div[@class="yuRUbf"]/a')
-    profiles_list = [profile.get_attribute(
-        'href') for profile in profiles_list]
-    urls.append(profiles_list)
-
-    sleep(1)
-    driver.find_element_by_xpath('//a[@id="pnnext"]').click()
-
-flatten_urls = [item for sublist in urls for item in sublist]
-
-for profile in flatten_urls:
+for profile in urls:
     try:
+        print(f'Collectinig data from {profile}')
+
         driver.get(profile)
-        sleep(1)
+        sleep(3)
 
         response = Selector(text=driver.page_source)
 
@@ -153,7 +157,7 @@ for profile in flatten_urls:
 
         driver.find_element_by_xpath(
             '//*[@id="top-card-text-details-contact-info"]').click()
-        sleep(1)
+        sleep(3)
 
         component_links = driver.find_elements_by_xpath(
             '//a[@href]')
