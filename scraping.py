@@ -13,7 +13,7 @@ def google_search_links(query):
         "X-User-Agent": "desktop",
         "X-Proxy-Location": "EU",
         "X-RapidAPI-Host": "google-search3.p.rapidapi.com",
-        "X-RapidAPI-Key": ""
+        "X-RapidAPI-Key": "0a68164619msh1832650cb7cdbd6p1d6bb4jsn84ef60bd80a6"
     }
 
     r = requests.request("GET", url, headers=headers)
@@ -76,6 +76,12 @@ niche_inputs = []
 position_inputs = []
 other_inputs = []
 
+linkedin_user = input(
+    '\nEnter your LinkedIn user or e-mail: ')
+
+linkedin_password = input(
+    '\nEnter your LinkedIn password: ')
+
 while True:
     input_keyword = input(
         '\nEnter the keyword for location (or type "continue" to go forward): ')
@@ -115,22 +121,24 @@ query = build_query(location_inputs, niche_inputs,
 print(f'Query: {query}')
 
 driver = webdriver.Chrome('./chromedriver')
+driver.set_window_size(1024, 600)
+driver.maximize_window()
 # LINKEDIN
 
 # access LinkedIn
 driver.get('https://www.linkedin.com/')
-sleep(1)
+sleep(2)
 
 # Log in to LinkedIn
 driver.find_element_by_xpath('//*[@id="session_key"]').click()
-sleep(1)
+sleep(2)
 
 user_input = driver.find_element_by_name('session_key')
-user_input.send_keys('henrique@usebom.com')
+user_input.send_keys(linkedin_user)
 
 sleep(2)
 password_input = driver.find_element_by_name('session_password')
-password_input.send_keys('')
+password_input.send_keys(linkedin_password)
 
 password_input.send_keys(Keys.RETURN)
 
@@ -146,7 +154,6 @@ for profile in urls:
         print(f'Collectinig data from {profile}')
 
         driver.get(profile)
-        sleep(3)
 
         response = Selector(text=driver.page_source)
 
@@ -155,9 +162,11 @@ for profile in urls:
             '//div[@class="text-body-medium break-words"]').text
         url_profile = driver.current_url
 
+        sleep(5)
+
         driver.find_element_by_xpath(
             '//*[@id="top-card-text-details-contact-info"]').click()
-        sleep(3)
+        sleep(5)
 
         component_links = driver.find_elements_by_xpath(
             '//a[@href]')
