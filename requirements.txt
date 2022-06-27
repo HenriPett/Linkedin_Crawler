@@ -1,3 +1,4 @@
 selenium
 requests
 parsel
+webdriver-manager

@@ -1,4 +1,5 @@
 import requests
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from time import sleep
@@ -120,7 +121,7 @@ query = build_query(location_inputs, niche_inputs,
 
 print(f'Query: {query}')
 
-driver = webdriver.Chrome('./chromedriver')
+driver = webdriver.Chrome(ChromeDriverManager().install())
 driver.set_window_size(1024, 600)
 driver.maximize_window()
 # LINKEDIN
